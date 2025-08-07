@@ -1,0 +1,25 @@
+{
+  "name": "api-de-comunica-o-em-tempo-real",
+  "version": "1.0.0",
+  "description": "API desenvolvida em NodeJS que permite comunicação em tempo real entre usuários. Utilizando sockets, o aplicativo possibilita troca de mensagens instantâneas e envio de arquivos.\r Para rodar essa API, você necessita de",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/muriloruz/API-de-Comunica-o-em-tempo-real.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/muriloruz/API-de-Comunica-o-em-tempo-real/issues"
+  },
+  "homepage": "https://github.com/muriloruz/API-de-Comunica-o-em-tempo-real#readme",
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1"
+  }
+}

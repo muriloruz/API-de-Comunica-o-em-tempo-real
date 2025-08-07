@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Online</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"
+        integrity="sha512-U6K1YLIFUWcvuw5ucmMtT9HH4t0uz3M366qrF5y4vnyH6dgDzndlcGvH/Lz5k8NFh80SN95aJ5rqGZEdaQZ7ZQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <form id="chat">
+        <input type="text" name="username" placeholder="Digite seu nome">
+        <div class="messages"></div>
+        <input type="text" name="message" placeholder="Digite sua mensagem">
+        <input type="file" id="fileInput" />
+        <button type="submit">Enviar</button>
+        <button type="button" id="arq">Enviar Arquivo</button>
+    </form>
+
+    <script type="text/javascript">
+        var socket = io('http://localhost:3000');
+
+        function renderMessage(message) {
+            $('.messages').append(`
+                <div class="message">
+                    <strong>${message.author}:</strong>
+                    <span>${message.message || ''}</span>
+                    ${message.filename && message.filetype.startsWith('image/') ? `<br><img src="${message.data}" style="max-width:200px; max-height:150px;" />` : ''}
+                    <em>${message.date.date} - ${message.date.time}</em>
+                </div>
+            `);
+            $('.messages').scrollTop($('.messages')[0].scrollHeight);
+        }
+
+        socket.on('previousMessages', function (messages) {
+            messages.forEach(function (message) {
+                renderMessage(message);
+            });
+        });
+        socket.on('receivedMessage', function (message) {
+            renderMessage(message);
+        });
+        socket.on('receivedFile', function (file) {
+            renderMessage(file);
+        });
+        $('#chat').submit(function (event) {
+            event.preventDefault();
+            var author = $('input[name="username"]').val().trim();
+            var message = $('input[name="message"]').val().trim();
+            if (author.length && message.length) {
+                var msgObject = {
+                    author: author,
+                    message: message,
+                    date: {
+                        date: new Date().toLocaleDateString(),
+                        time: new Date().toLocaleTimeString()
+                    }
+                };
+                // Removido renderMessage() aqui
+                socket.emit('sendMessage', msgObject);
+                $('input[name="message"]').val('');
+            }
+        });
+
+        $('#arq').click(function () {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) return alert("Selecione um arquivo para enviar.");
+            if (!file.type.startsWith('image/')) return alert("Envie apenas imagens!");
+
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+                const fileMessage = {
+                    author: $('input[name="username"]').val().trim(),
+                    date: {
+                        date: new Date().toLocaleDateString(),
+                        time: new Date().toLocaleTimeString()
+                    },
+                    filename: file.name,
+                    filetype: file.type,
+                    data: evt.target.result.split(',')[1]  // Envia apenas base64 puro
+                };
+                socket.emit('sendFile', fileMessage);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Renderização modificada para usar URL correta
+        function renderMessage(message) {
+            const isImage = message.filename && message.filetype.startsWith('image/');
+            $('.messages').append(`
+            <div class="message">
+                <strong>${message.author}:</strong>
+                <span>${message.message || ''}</span>
+                ${isImage ? `<br><img src="/imgs/${message.savedFilename}" style="max-width:200px;">` : ''}
+                <em>${message.date.date} - ${message.date.time}</em>
+            </div>
+        `);
+            $('.messages').scrollTop($('.messages')[0].scrollHeight);
+        }
+    </script>
+</body>
+
+
+</html>
